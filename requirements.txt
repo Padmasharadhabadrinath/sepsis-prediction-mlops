@@ -8,3 +8,4 @@ lime
 fastapi
 uvicorn
 joblib
+gdown

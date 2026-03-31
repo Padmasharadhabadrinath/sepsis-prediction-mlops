@@ -6,8 +6,16 @@ import numpy as np
 # -------------------------------
 # Load Model
 # -------------------------------
-model = joblib.load("models/trained_model.pkl")
+import gdown
+import os
 
+MODEL_PATH = "model.pkl"
+
+if not os.path.exists(MODEL_PATH):
+    url = "https://drive.google.com/uc?id=1xHHa-KrjDyxVWqHPtOvwKyYSA1I0LXkq"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+model = joblib.load(MODEL_PATH)
 st.set_page_config(page_title="Sepsis Prediction", layout="wide")
 
 st.title("🩺 Sepsis Prediction Dashboard")

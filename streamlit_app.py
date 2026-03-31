@@ -2,28 +2,34 @@ import streamlit as st
 import joblib
 import pandas as pd
 import numpy as np
-
-# -------------------------------
-# Load Model
-# -------------------------------
-import gdown
 import os
+import gdown
 
-MODEL_PATH = "model.pkl"
-
-if not os.path.exists(MODEL_PATH):
-    url = "https://drive.google.com/uc?id=1xHHa-KrjDyxVWqHPtOvwKyYSA1I0LXkq"
-    gdown.download(url, MODEL_PATH, quiet=False)
-
-model = joblib.load(MODEL_PATH)
 st.set_page_config(page_title="Sepsis Prediction", layout="wide")
 
+# -------------------------------
+# Load Model (SAFE + CACHED)
+# -------------------------------
+MODEL_PATH = "model.pkl"
+
+@st.cache_resource
+def load_model():
+
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner("Downloading model... ⏳"):
+            url = "https://drive.google.com/uc?id=1xHHa-KrjDyxVWqHPtOvwKyYSA1I0LXkq"
+            gdown.download(url, MODEL_PATH, quiet=True)
+
+    return joblib.load(MODEL_PATH)
+
+model = load_model()
+
+# -------------------------------
+# UI
+# -------------------------------
 st.title("🩺 Sepsis Prediction Dashboard")
 st.markdown("AI-based system to predict **sepsis risk** using patient clinical data.")
 
-# -------------------------------
-# Sidebar Info
-# -------------------------------
 st.sidebar.title("📌 Project Info")
 st.sidebar.info("""
 Model: Bagging Classifier  
@@ -33,7 +39,7 @@ Includes: Explainability (LIME)
 """)
 
 # -------------------------------
-# Input Section
+# Inputs
 # -------------------------------
 st.subheader("👤 Enter Patient Details")
 
@@ -57,7 +63,6 @@ with col3:
     Hct = st.number_input("Hematocrit", 10.0, 60.0, 40.0)
     Hgb = st.number_input("Hemoglobin", 5.0, 20.0, 13.0)
 
-# More inputs
 col4, col5 = st.columns(2)
 
 with col4:
@@ -71,9 +76,6 @@ with col5:
     Unit = st.selectbox("Unit", [0, 1])
     Gender_1 = st.selectbox("Gender (1 = Male, 0 = Female)", [0, 1])
 
-# -------------------------------
-# Feature Order (IMPORTANT)
-# -------------------------------
 FEATURE_COLUMNS = [
     'Hour','HR','O2Sat','Temp','MAP','Resp','BUN','Chloride',
     'Creatinine','Glucose','Hct','Hgb','WBC','Platelets',
@@ -96,9 +98,7 @@ if st.button("🔍 Predict"):
 
     st.subheader("📊 Prediction Result")
 
-    # Progress bar
     st.progress(int(probability * 100))
-
     st.write(f"### 🧠 Sepsis Risk Score: {probability*100:.2f}%")
 
     if prediction == 1:
@@ -106,18 +106,8 @@ if st.button("🔍 Predict"):
     else:
         st.success("✅ No Sepsis Detected")
 
-    # -------------------------------
-    # Safe Explainability (NO CRASH)
-    # -------------------------------
     st.subheader("🔍 Model Explanation")
-
-    try:
-        import shap
-
-        st.warning("SHAP not supported for Bagging model → skipped safely")
-
-    except:
-        st.warning("Explainability module not available")
+    st.warning("SHAP not supported for Bagging model → skipped safely")
 
 # -------------------------------
 # Footer

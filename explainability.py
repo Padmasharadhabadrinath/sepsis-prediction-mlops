@@ -7,6 +7,8 @@ def generate_shap(model, X):
     print("Calculating SHAP values on sample data...")
 
     # Take small sample
+    if not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
     X_sample = X.sample(1000, random_state=42)
 
     try:
@@ -14,6 +16,8 @@ def generate_shap(model, X):
 
             explainer = shap.TreeExplainer(model)
             shap_values = explainer.shap_values(X_sample)
+            if isinstance(shap_values, list):
+                shap_values = shap_values[1]
 
             print("Generating SHAP summary plot...")
 

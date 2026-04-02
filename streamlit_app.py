@@ -14,25 +14,25 @@ st.set_page_config(page_title="Sepsis Prediction", layout="wide")
 # -------------------------------
 import gdown
 
-MODEL_URL = "https://drive.google.com/uc?id=1OxEQC94ZKrlw06BkMWpV-KLlc-A2WG_w"
-SCALER_URL = "https://drive.google.com/uc?id=1k7NpmmtBjYZnTPv1VPzPI_63IRi0vc_0"
+# -------------------------------
+# Load from Google Drive
+# -------------------------------
 
-MODEL_PATH = "model.pkl"
-SCALER_PATH = "scaler.pkl"
+MODEL_URL = "https://drive.google.com/uc?id=1iD5AuuFCNta0wcRlBW9IW-OC3be56iEN"
+SCALER_URL = "https://drive.google.com/uc?id=18eQ4SHrQkUlI6uC4Yr90nyt8geMQAinz"
 
 @st.cache_resource
 def load_files():
-    if not os.path.exists(MODEL_PATH):
-        gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+    if not os.path.exists("model.pkl"):
+        gdown.download(MODEL_URL, "model.pkl", quiet=False)
 
-    if not os.path.exists(SCALER_PATH):
-        gdown.download(SCALER_URL, SCALER_PATH, quiet=False)
+    if not os.path.exists("scaler.pkl"):
+        gdown.download(SCALER_URL, "scaler.pkl", quiet=False)
 
-    model = joblib.load(MODEL_PATH)
-    scaler = joblib.load(SCALER_PATH)
+    model = joblib.load("model.pkl")
+    scaler = joblib.load("scaler.pkl")
 
     return model, scaler
-
 model, scaler = load_files()
 # -------------------------------
 # UI

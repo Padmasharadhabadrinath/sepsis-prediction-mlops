@@ -26,11 +26,10 @@ def run_pipeline():
 
     # 3️⃣ Feature engineering
     print("Starting feature engineering...")
-    df_processed = preprocess_data(train_df)
-
+    df_processed, scaler = preprocess_data(train_df)
     # 4️⃣ Train model
     print("Training model...")
-    model, X_train, X_test, y_test = train_model(df_processed)
+    model, X_train, X_test, y_test = train_model(df_processed, scaler)
 
     # 5️⃣ Evaluate model
     print("Evaluating model...")

@@ -47,4 +47,4 @@ def preprocess_data(df):
 
     print("Feature engineering completed")
 
-    return df
+    return df, scaler

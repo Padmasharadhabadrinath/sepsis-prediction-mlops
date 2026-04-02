@@ -3,21 +3,16 @@ import joblib
 import pandas as pd
 import os
 import gdown
+import numpy as np
 
 # -------------------------------
-# Page Config (MUST BE FIRST)
+# Page Config
 # -------------------------------
 st.set_page_config(page_title="Sepsis Prediction", layout="wide")
 
 # -------------------------------
 # Load Model from Google Drive
 # -------------------------------
-import gdown
-
-# -------------------------------
-# Load from Google Drive
-# -------------------------------
-
 MODEL_URL = "https://drive.google.com/uc?id=1iD5AuuFCNta0wcRlBW9IW-OC3be56iEN"
 SCALER_URL = "https://drive.google.com/uc?id=18eQ4SHrQkUlI6uC4Yr90nyt8geMQAinz"
 
@@ -33,20 +28,19 @@ def load_files():
     scaler = joblib.load("scaler.pkl")
 
     return model, scaler
+
 model, scaler = load_files()
+
 # -------------------------------
 # UI
 # -------------------------------
 st.title("🩺 Sepsis Prediction Dashboard")
 st.markdown("AI-based system to predict **sepsis risk** using patient clinical data.")
 
-# Sidebar
 st.sidebar.title("📌 Project Info")
 st.sidebar.info("""
-Model: Bagging Classifier  
-Metric: F1 Score Optimized  
-Dataset: ICU Clinical Data  
-Approach: Probability-Based Risk Prediction
+Model: Random Forest + SMOTE  
+Approach: Hybrid (ML + Clinical Rules)  
 """)
 
 # -------------------------------
@@ -88,7 +82,7 @@ with col5:
     Gender_1 = st.selectbox("Gender (1 = Male, 0 = Female)", [0, 1])
 
 # -------------------------------
-# Feature Order (IMPORTANT)
+# Feature Order
 # -------------------------------
 FEATURE_COLUMNS = [
     'Hour','HR','O2Sat','Temp','MAP','Resp','BUN','Chloride',
@@ -108,34 +102,51 @@ if st.button("🔍 Predict"):
     ]], columns=FEATURE_COLUMNS)
 
     # -------------------------------
-    # 🔥 APPLY SAME PREPROCESSING
+    # Preprocessing (same as training)
     # -------------------------------
-
-    import numpy as np
-
-    # Log transform
     for col in ['MAP','BUN','Creatinine','Glucose','WBC','Platelets']:
         input_data[col] = np.log(input_data[col] + 1)
 
-    input_data = scaler.transform(input_data)
-    input_data = pd.DataFrame(input_data, columns=FEATURE_COLUMNS)
-    # -------------------------------
-    # Prediction
-    # -------------------------------
+    scale_cols = ['HR','O2Sat','Temp','MAP','Resp','BUN','Chloride',
+                  'Creatinine','Glucose','Hct','Hgb','WBC','Platelets']
 
-    prediction = model.predict(input_data)[0]
+    input_data[scale_cols] = scaler.transform(input_data[scale_cols])
+
+    # -------------------------------
+    # Model Prediction
+    # -------------------------------
     probability = model.predict_proba(input_data)[0][1]
-    st.write("Threshold check:", probability)
 
+    # -------------------------------
+    # 🔥 Clinical Risk Boost
+    # -------------------------------
+    risk_score = probability
+
+    if HR > 130: risk_score += 0.1
+    if Temp > 39: risk_score += 0.1
+    if MAP < 60: risk_score += 0.1
+    if WBC > 15: risk_score += 0.1
+    if Platelets < 100: risk_score += 0.1
+    if Resp > 25: risk_score += 0.1
+
+    risk_score = min(risk_score, 1.0)
+
+    # -------------------------------
+    # Display
+    # -------------------------------
     st.subheader("📊 Prediction Result")
 
-    st.metric("Sepsis Risk Score", f"{probability*100:.2f}%")
-    st.progress(int(probability * 100))
-    if probability >= 0.6:
+    st.metric("Sepsis Risk Score", f"{risk_score*100:.2f}%")
+    st.progress(int(risk_score * 100))
+
+    # -------------------------------
+    # Final Classification
+    # -------------------------------
+    if risk_score >= 0.6:
         st.error("🔴 High Risk of Sepsis")
         st.markdown("Immediate medical attention recommended.")
 
-    elif probability >= 0.25:
+    elif risk_score >= 0.25:
         st.warning("🟡 Moderate Risk of Sepsis")
         st.markdown("Patient should be closely monitored.")
 
@@ -143,8 +154,6 @@ if st.button("🔍 Predict"):
         st.success("🟢 Low Risk (No Sepsis Detected)")
         st.markdown("Patient condition appears stable.")
 
-        st.subheader("🔍 Model Explanation")
-        st.info("This model uses ensemble learning (Bagging).")
 # -------------------------------
 # Footer
 # -------------------------------

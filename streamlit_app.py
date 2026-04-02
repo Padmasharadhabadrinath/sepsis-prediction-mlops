@@ -131,15 +131,20 @@ if st.button("🔍 Predict"):
 
     st.metric("Sepsis Risk Score", f"{probability*100:.2f}%")
     st.progress(int(probability * 100))
-    if probability > 0.5:
-        st.error("⚠️ High Risk of Sepsis")
-    elif probability > 0.3:
-        st.warning("🟡 Moderate Risk")
-    else:
-        st.success("✅ Low Risk")
+    if probability >= 0.6:
+        st.error("🔴 High Risk of Sepsis")
+        st.markdown("Immediate medical attention recommended.")
 
-    st.subheader("🔍 Model Explanation")
-    st.info("This model uses ensemble learning (Bagging).")
+    elif probability >= 0.4:
+        st.warning("🟡 Moderate Risk of Sepsis")
+        st.markdown("Patient should be closely monitored.")
+
+    else:
+        st.success("🟢 Low Risk (No Sepsis Detected)")
+        st.markdown("Patient condition appears stable.")
+
+        st.subheader("🔍 Model Explanation")
+        st.info("This model uses ensemble learning (Bagging).")
 # -------------------------------
 # Footer
 # -------------------------------

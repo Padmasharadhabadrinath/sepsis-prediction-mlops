@@ -135,7 +135,7 @@ if st.button("🔍 Predict"):
         st.error("🔴 High Risk of Sepsis")
         st.markdown("Immediate medical attention recommended.")
 
-    elif probability >= 0.4:
+    elif probability >= 0.25:
         st.warning("🟡 Moderate Risk of Sepsis")
         st.markdown("Patient should be closely monitored.")
 

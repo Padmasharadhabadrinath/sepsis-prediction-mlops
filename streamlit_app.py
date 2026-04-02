@@ -110,7 +110,10 @@ if st.button("🔍 Predict"):
     scale_cols = ['HR','O2Sat','Temp','MAP','Resp','BUN','Chloride',
                   'Creatinine','Glucose','Hct','Hgb','WBC','Platelets']
 
-    input_data[scale_cols] = scaler.transform(input_data[scale_cols])
+    input_data = pd.DataFrame(
+    scaler.transform(input_data),
+    columns=input_data.columns
+    )
 
     # -------------------------------
     # Model Prediction

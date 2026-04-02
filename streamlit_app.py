@@ -110,10 +110,18 @@ if st.button("🔍 Predict"):
     scale_cols = ['HR','O2Sat','Temp','MAP','Resp','BUN','Chloride',
                   'Creatinine','Glucose','Hct','Hgb','WBC','Platelets']
 
-    input_data = pd.DataFrame(
-    scaler.transform(input_data),
-    columns=input_data.columns
-    )
+    # Apply scaler only to the columns it was trained on
+    scaler_features = list(getattr(scaler, "feature_names_in_", scale_cols))
+    scale_cols_present = [c for c in scaler_features if c in input_data.columns]
+    input_data[scale_cols_present] = scaler.transform(input_data[scale_cols_present])
+
+    # Align feature order with the trained model if available
+    model_features = list(getattr(model, "feature_names_in_", FEATURE_COLUMNS))
+    missing_features = [c for c in model_features if c not in input_data.columns]
+    if missing_features:
+        st.error(f"Missing required features: {', '.join(missing_features)}")
+        st.stop()
+    input_data = input_data[model_features]
 
     # -------------------------------
     # Model Prediction
